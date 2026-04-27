@@ -15,27 +15,39 @@ ws.on("message", (data) => {
   const message = JSON.parse(data.toString());
   console.log("Received:", message);
 
-  // heartbeat 무시
-  if (!message.payload) return;
+  // heartbeat 패킷 무시
+  if (message.timestamp) return;
 
-  if (message.payload.action === "setPowerState") {
-    console.log("Switch:", message.payload.value.state);
+  // 전원 명령 처리
+  if (message.payload?.action === "setPowerState") {
+    const state = message.payload.value.state;
+
+    console.log("Switch:", state);
 
     const response = {
       header: {
         payloadVersion: 2
       },
       payload: {
+        clientId: message.payload.clientId,
+        createdAt: Date.now(),
         deviceId: message.payload.deviceId,
         replyToken: message.payload.replyToken,
         type: "response",
-        success: true
+        success: true,
+        value: {
+          state: state
+        }
       }
     };
 
     ws.send(JSON.stringify(response));
     console.log("Response sent");
   }
+});
+
+ws.on("error", (err) => {
+  console.log("Error:", err);
 });
 
 ws.on("close", () => {
