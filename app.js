@@ -1,6 +1,7 @@
 const WebSocket = require("ws");
 
-const TABLET_URL = "http://59.24.189.206:9522/wake";
+const AUTOREMOTE_URL =
+  "https://autoremotejoaomgcd.appspot.com/sendmessage?key=fcsFlYfHxys:APA91bEXn1YCJkfIcltnJFNmE34F-cbA8o9LipFxOetqjL9u9l_lG4RyExAfQv3AsV-oj7XPOOaEUdFR32Q35A2ke7MdoUB0egsKernpzgn76znaOaaL6KE&message=wakepc";
 
 const ws = new WebSocket("wss://ws.sinric.pro", {
   headers: {
@@ -20,12 +21,11 @@ ws.on("message", async (data) => {
     const message = JSON.parse(data.toString());
     console.log("Received:", message);
 
-    // Heartbeat 응답 (연결 유지용)
+    // Heartbeat 응답
     if (message.timestamp) {
       ws.send(JSON.stringify({
         timestamp: message.timestamp
       }));
-
       console.log("Heartbeat sent");
       return;
     }
@@ -36,16 +36,16 @@ ws.on("message", async (data) => {
 
       console.log(`Power State: ${state}`);
 
-      // ON일 때만 태블릿 호출 (WOL 실행)
+      // ON일 때 AutoRemote로 wakepc 메시지 전송
       if (state === "On") {
         try {
-          const result = await fetch(TABLET_URL, {
-            method: "POST"
+          const result = await fetch(AUTOREMOTE_URL, {
+            method: "GET"
           });
 
-          console.log(`Tablet webhook sent: ${result.status}`);
+          console.log(`AutoRemote trigger sent: ${result.status}`);
         } catch (error) {
-          console.log("Tablet webhook failed:", error.message);
+          console.log("AutoRemote trigger failed:", error.message);
         }
       }
 
