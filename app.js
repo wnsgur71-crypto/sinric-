@@ -16,7 +16,13 @@ ws.on("message", (data) => {
   console.log("Received:", message);
 
   // heartbeat 패킷 무시
-  if (message.timestamp) return;
+  if (message.timestamp) {
+  ws.send(JSON.stringify({
+    timestamp: message.timestamp
+  }));
+  console.log("Heartbeat sent");
+  return;
+}
 
   // 전원 명령 처리
   if (message.payload?.action === "setPowerState") {
