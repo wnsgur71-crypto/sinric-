@@ -8,19 +8,24 @@ const ws = new WebSocket("wss://ws.sinric.pro", {
 });
 
 ws.on("open", () => {
-  console.log("Sinric connected");
+  console.log("Connected!");
 });
 
 ws.on("message", (data) => {
-  const msg = JSON.parse(data);
-  console.log("Received:", msg);
+  const message = JSON.parse(data.toString());
+  console.log("Received:", message);
 
-  // 명령 받으면 성공 응답
-  if (msg.deviceId === process.env.DEVICE_ID) {
-    ws.send(JSON.stringify({
-      deviceId: process.env.DEVICE_ID,
-      success: true
-    }));
+  // Sinric 명령 응답
+  if (message.action === "setPowerState") {
+    const response = {
+      requestId: message.requestId,
+      payload: {
+        success: true
+      }
+    };
+
+    ws.send(JSON.stringify(response));
+    console.log("Response sent");
   }
 });
 
